@@ -1,0 +1,11 @@
+service: lag-buc
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  region: ${opt:region}
+  stage: ${opt:stage}
+
+functions:
+  updateUser:
+    handler: update-user/handler.handle
