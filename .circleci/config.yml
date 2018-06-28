@@ -16,9 +16,8 @@ jobs:
             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
             chmod +x ./cc-test-reporter
       - run:
-          name: Install Serverless CLI and dependencies
+          name: Install dependencies
           command: |
-            sudo npm i -g serverless
             npm install
       - save_cache:
           paths:
