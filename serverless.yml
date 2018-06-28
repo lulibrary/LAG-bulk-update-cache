@@ -8,4 +8,4 @@ provider:
 
 functions:
   updateUser:
-    handler: update-user/handler.handle
+    handler: src/update-user/handler.handle

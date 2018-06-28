@@ -1,1 +1,8 @@
 node_modules
+
+# Serverless directories
+.serverless
+
+# Code Coverage
+coverage
+.nyc_output
