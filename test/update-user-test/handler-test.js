@@ -1,3 +1,11 @@
+const sinon = require('sinon')
+const sandbox = sinon.createSandbox()
+const mockRequire = require('mock-require')
+
+mockRequire('@lulibrary/node-alma-api', {
+
+})
+
 const chai = require('chai')
 chai.should()
 
