@@ -1,44 +1,56 @@
 'use strict'
-const almaApi = require('@lulibrary/node-alma-api')
-const { User } = require('@lulibrary/lag-alma-utils')
 const { Queue } = require('@lulibrary/lag-utils')
 
-module.exports.handle = (event, context, callback) => {
-  fetchUsersFromQueue()
-    .then(userIDs => {
-      return Promise.all(userIDs.map(updateUser))
-        .then(user => {
-          return Promise.all([
-            sendLoanIDsToQueue(user.loan_ids)
-          ])
-        })
-    })
+const createUserFromApi = require('./create-user-from-api')
+const sendToQueue = require('./send-to-queue')
 
-  // Use this code if you don't use the http event with the LAMBDA-PROXY integration
-  // callback(null, { message: 'Go Serverless v1.0! Your function executed successfully!', event });
+const usersQueue = new Queue({
+  url: process.env.USERS_QUEUE_URL
+})
+
+module.exports.handle = (event, context, callback) => {
+  usersQueue.receiveMessages()
+    .then(handleMessages)
+    .then(() => {
+      callback(null, 'Successfully updated users cache')
+    })
+    .catch(e => {
+      console.log(e)
+      callback(new Error('An error has occured'))
+    })
+}
+
+const handleMessages = (messages = []) => {
+  return Promise.all(
+    messages.map(message =>
+      updateUser(message.Body)
+        .then(() => deleteMessage(message))
+    ))
 }
 
 const updateUser = (userID) => {
+  return createUserFromApi(userID)
+    .then(handleLoansAndRequests)
+}
+
+const handleLoansAndRequests = (user) => {
   return Promise.all([
-    almaApi.users.for(userID).loans.get()
+    sendToQueue(process.env.LOANS_QUEUE_URL, buildLoanMessages(user)),
+    sendToQueue(process.env.REQUESTS_QUEUE_URL, buildRequestMessages(user))
   ])
-    .then(results => {
-      return {
-        primary_id: userID,
-        loans: results[0]
-      }
-    })
-    .then(userData => {
-      User.create(userData)
-    })
 }
 
-const sendLoanIDsToQueue = (loanIDs) => {
-  const loansQueue = new Queue({})
+const buildLoanMessages = (user) => buildMessages(user, 'loan_ids', 'loanID')
 
-  return Promise.all(loanIDs.map(loansQueue.sendMessage))
+const buildRequestMessages = (user) => buildMessages(user, 'request_ids', 'requestID')
+
+const buildMessages = (user, arrayKey, idKey) => {
+  return user[arrayKey].map(id => JSON.stringify({
+    [idKey]: id,
+    userID: user.primary_id
+  }))
 }
 
-const fetchUsersFromQueue = () => {
-
+const deleteMessage = (message) => {
+  return usersQueue.deleteMessage(message.ReceiptHandle)
 }

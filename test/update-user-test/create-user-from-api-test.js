@@ -23,7 +23,7 @@ const rewire = require('rewire')
 let wires = []
 
 // Module under test
-const createUserFromApi = rewire('../src/update-user/create-user-from-api')
+const createUserFromApi = rewire('../../src/update-user/create-user-from-api')
 
 describe('create-user-from-api tests', () => {
   afterEach(() => {
@@ -36,7 +36,7 @@ describe('create-user-from-api tests', () => {
     it('should call User#create', () => {
       const createStub = sandbox.stub(User, 'create')
       createStub.resolves()
-      const createUser = createUserFromApi.__get__('createUser')
+      const createUser = createUserFromApi.__get__('createUserInCache')
 
       const testUserID = uuid()
 
@@ -60,7 +60,7 @@ describe('create-user-from-api tests', () => {
     it('should create arrays of the loan and request IDs', () => {
       const createStub = sandbox.stub(User, 'create')
       createStub.resolves()
-      const createUser = createUserFromApi.__get__('createUser')
+      const createUser = createUserFromApi.__get__('createUserInCache')
 
       const testUserID = uuid()
 
@@ -128,7 +128,7 @@ describe('create-user-from-api tests', () => {
   })
 
   describe('createUserFromApi method tests', () => {
-    it('should call createUser with the result of getUserData', () => {
+    it('should call createUserInCache with the result of getUserData', () => {
       const testUserID = uuid()
       const testLoans = new Map([uuid(), uuid(), uuid()].map(id => [id, uuid()]))
       const testRequests = new Map([uuid(), uuid(), uuid()].map(id => [id, uuid()]))
@@ -136,7 +136,7 @@ describe('create-user-from-api tests', () => {
       const getDataStub = sandbox.stub()
       const createUserStub = sandbox.stub()
       wires.push(createUserFromApi.__set__('getUserData', getDataStub))
-      wires.push(createUserFromApi.__set__('createUser', createUserStub))
+      wires.push(createUserFromApi.__set__('createUserInCache', createUserStub))
       getDataStub.resolves({
         id: testUserID,
         loans: testLoans,
