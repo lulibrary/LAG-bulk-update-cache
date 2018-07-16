@@ -77,9 +77,21 @@ describe('update user handler tests', () => {
           }])
         })
     })
+
+    it('should callback with an error if handleMessages is rejected', () => {
+      sandbox.stub(Queue.prototype, 'receiveMessages').resolves()
+      const handleMessageStub = sandbox.stub()
+      handleMessageStub.rejects()
+      wires.push(updateUserHandler.__set__('handleMessages', handleMessageStub))
+      sandbox.stub(console, 'log')
+
+      return handler().should.eventually.be.rejectedWith('An error has occured')
+    })
   })
 
   describe('handleMessages method tests', () => {
+    const handleMessages = updateUserHandler.__get__('handleMessages')
+
     it('should call updateUser with each message body', () => {
       const testUserIDs = [uuid(), uuid(), uuid()]
       const testMessages = [{
@@ -143,6 +155,24 @@ describe('update user handler tests', () => {
           testMessages.forEach(message => {
             deleteMessageStub.should.have.been.calledWith(message)
           })
+        })
+    })
+
+    it('should default to an empty message array, and not call updateUser or deleteMessage', () => {
+      const updateUserStub = sandbox.stub()
+      updateUserStub.resolves()
+      const deleteMessageStub = sandbox.stub()
+      deleteMessageStub.resolves()
+
+      wires.push(
+        updateUserHandler.__set__('updateUser', updateUserStub),
+        updateUserHandler.__set__('deleteMessage', deleteMessageStub)
+      )
+
+      return handleMessages()
+        .then(() => {
+          updateUserStub.should.not.have.been.called
+          deleteMessageStub.should.not.have.been.called
         })
     })
   })
