@@ -20,7 +20,7 @@ const { Queue } = require('@lulibrary/lag-utils')
 const updateUserHandler = rewire('../../src/update-user/handler')
 const handler = (event = {}, ctx = {}) => new Promise((resolve, reject) => {
   updateUserHandler.handle(event, ctx, (err, res) => {
-    err ? reject(err) : resolve(res)
+    return err ? reject(err) : resolve(res)
   })
 })
 
