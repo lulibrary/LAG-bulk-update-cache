@@ -5,7 +5,83 @@ provider:
   runtime: nodejs6.10
   region: ${opt:region}
   stage: ${opt:stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - sqs:SendMessage
+        - sqs:GetQueueURL
+        - sqs:ReceiveMessage
+        - sqs:DeleteMessage
+      Resource:
+        - ${self:custom.QueueArns.${opt:stage}.usersQueue}
+        - ${self:custom.QueueArns.${opt:stage}.loansQueue}
+        - ${self:custom.QueueArns.${opt:stage}.requestsQueue}
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:DeleteItem
+        - dynamodb:DescribeTable
+      Resource:
+        - ${self:custom.TableArns.${opt:stage}.userCacheTable}
 
 functions:
   updateUser:
     handler: src/update-user/handler.handle
+    events:
+      - sqs: ${self:custom.QueueArns.${opt:stage}.usersQueue}
+    environment:
+      USERS_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.usersQueue}
+      LOANS_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.loansQueue}
+      REQUESTS_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.requestsQueue}
+      USER_CACHE_TABLE: ${self:custom.TableNames.${opt:stage}.userCacheTable}
+      ALMA_KEY: ${env:ALMA_API_KEY}
+resources:
+  Resources:
+    loansQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${opt:stage}-loansQueue
+    requestsQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${opt:stage}-requestsQueue
+
+custom:
+  TableArns:
+    stg:
+      userCacheTable: ${env:USER_CACHE_TABLE_ARN_STG}
+    prod:
+      userCacheTable: ${env:USER_CACHE_TABLE_ARN_PROD}
+  TableNames:
+    stg:
+      userCacheTable: ${env:USER_CACHE_TABLE_NAME_STG}
+    prod:
+      userCacheTable: ${env:USER_CACHE_TABLE_NAME_PROD}
+  QueueArns:
+    stg:
+      usersQueue: ${env:USER_QUEUE_ARN_STG}
+      loansQueue:
+        "Fn::GetAtt": ["loansQueue", "Arn"]
+      requestsQueue:
+        "Fn::GetAtt": ["requestsQueue", "Arn"]
+    prod:
+      usersQueue: ${env:USER_QUEUE_ARN_PROD}
+      loansQueue:
+        "Fn::GetAtt": ["loansQueue", "Arn"]
+      requestsQueue:
+        "Fn::GetAtt": ["requestsQueue", "Arn"]
+
+  QueueUrls:
+    stg:
+      usersQueue: ${env:USER_QUEUE_URL_STG}
+      loansQueue:
+        Ref: loansQueue
+      requestsQueue:
+        Ref: requestsQueue
+    prod:
+      usersQueue: ${env:USER_QUEUE_URL_PROD}
+      loansQueue:
+        Ref: loansQueue
+      requestsQueue:
+        Ref: requestsQueue
