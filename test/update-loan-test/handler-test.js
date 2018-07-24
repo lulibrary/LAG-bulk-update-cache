@@ -54,7 +54,7 @@ describe('update loan handler tests', () => {
     it('should call handleMessages with the response of recieveMesages', () => {
       const receiveMessagesStub = sandbox.stub(Queue.prototype, 'receiveMessages')
       receiveMessagesStub.resolves([{
-        Body: 'test_message_body',
+        Body: JSON.stringify({ test: 'test_id' }),
         ReceiptHandle: 'test_message_handle'
       }])
 
@@ -70,7 +70,7 @@ describe('update loan handler tests', () => {
       return handler()
         .then(() => {
           handleMessageStub.should.have.been.calledWith([{
-            Body: 'test_message_body',
+            Body: JSON.stringify({ test: 'test_id' }),
             ReceiptHandle: 'test_message_handle'
           }])
         })
@@ -92,14 +92,15 @@ describe('update loan handler tests', () => {
 
     it('should call updateLoan with each message body', () => {
       const testLoanIDs = [uuid(), uuid(), uuid()]
+      const testBodies = testLoanIDs.map(id => JSON.stringify({ loanID: id }))
       const testMessages = [{
-        Body: testLoanIDs[0],
+        Body: testBodies[0],
         ReceiptHandle: uuid()
       }, {
-        Body: testLoanIDs[1],
+        Body: testBodies[1],
         ReceiptHandle: uuid()
       }, {
-        Body: testLoanIDs[2],
+        Body: testBodies[2],
         ReceiptHandle: uuid()
       }]
 
@@ -116,8 +117,8 @@ describe('update loan handler tests', () => {
 
       return handleMessages(testMessages)
         .then(() => {
-          testMessages.forEach(message => {
-            updateLoanStub.should.have.been.calledWith(message.Body)
+          testLoanIDs.forEach(id => {
+            updateLoanStub.should.have.been.calledWith({ loanID: id })
           })
         })
     })
@@ -125,13 +126,13 @@ describe('update loan handler tests', () => {
     it('should call deleteMessage with each message object', () => {
       const testReceiptHandles = [uuid(), uuid(), uuid()]
       const testMessages = [{
-        Body: uuid(),
+        Body: JSON.stringify({ id: uuid() }),
         ReceiptHandle: testReceiptHandles[0]
       }, {
-        Body: uuid(),
+        Body: JSON.stringify({ id: uuid() }),
         ReceiptHandle: testReceiptHandles[1]
       }, {
-        Body: uuid(),
+        Body: JSON.stringify({ id: uuid() }),
         ReceiptHandle: testReceiptHandles[2]
       }]
 
@@ -184,11 +185,12 @@ describe('update loan handler tests', () => {
         updateLoanHandler.__set__('createLoanFromApi', createLoanStub)
       )
 
+      const testUserID = uuid()
       const testLoanID = uuid()
 
-      return updateLoan(testLoanID)
+      return updateLoan({ userID: testUserID, loanID: testLoanID })
         .then(() => {
-          createLoanStub.should.have.been.calledWith(testLoanID)
+          createLoanStub.should.have.been.calledWith(testUserID, testLoanID)
         })
     })
   })

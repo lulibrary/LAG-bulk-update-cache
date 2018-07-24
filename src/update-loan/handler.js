@@ -22,13 +22,13 @@ module.exports.handle = (event, context, callback) => {
 const handleMessages = (messages = []) => {
   return Promise.all(
     messages.map((message) =>
-      updateLoan(message.Body)
+      updateLoan(JSON.parse(message.Body))
         .then(() => deleteMessage(message))
     ))
 }
 
-const updateLoan = (userID, loanID) => {
-  return createLoanFromApi(userID, loanID)
+const updateLoan = (IDs) => {
+  return createLoanFromApi(IDs.userID, IDs.loanID)
 }
 
 const deleteMessage = (message) => {
