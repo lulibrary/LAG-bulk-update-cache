@@ -25,6 +25,11 @@ provider:
       Resource:
         - ${self:custom.TableArns.${opt:stage}.userCacheTable}
         - ${self:custom.TableArns.${opt:stage}.loanCacheTable}
+    - Effect: Allow
+      Action:
+        -ssm:GetParameter
+      Resource:
+        - ${env:ALMA_API_KEY_ARN}
 
 functions:
   updateUser:
@@ -36,7 +41,7 @@ functions:
       LOANS_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.loansQueue}
       REQUESTS_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.requestsQueue}
       USER_CACHE_TABLE: ${self:custom.TableNames.${opt:stage}.userCacheTable}
-      ALMA_KEY: ${env:ALMA_API_KEY}
+      ALMA_KEY_KEY_NAME: ${env:ALMA_API_KEY_NAME}
   updateLoan:
     handler: src/update-loan/handler.handle
     events:
