@@ -21,8 +21,10 @@ module.exports.handle = (event, context, callback) => {
 
 const handleMessages = (messages = []) => {
   return Promise.all(
-    messages.map((message) => updateLoan(message.Body))
-      .concat(messages.map(deleteMessage)))
+    messages.map((message) =>
+      updateLoan(message.Body)
+        .then(() => deleteMessage(message))
+    ))
 }
 
 const updateLoan = (userID, loanID) => {
