@@ -19,9 +19,9 @@ module.exports.handle = (event, context, callback) => {
     })
 }
 
-const handleMessages = (messages) => {
+const handleMessages = (messages = []) => {
   return Promise.all(
-    messages.map((message) => updateLoan(...JSON.parse(message.Body)))
+    messages.map((message) => updateLoan(message.Body))
       .concat(messages.map(deleteMessage)))
 }
 
