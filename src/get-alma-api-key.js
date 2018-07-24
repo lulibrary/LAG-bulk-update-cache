@@ -8,7 +8,10 @@ const getAlmaApiKey = () => {
       WithDecryption: true
     })
     .promise()
-    .then(data => data.Value)
+    .then(data => {
+      process.env.ALMA_KEY = data.Value
+      return data.Value
+    })
 }
 
 module.exports = getAlmaApiKey

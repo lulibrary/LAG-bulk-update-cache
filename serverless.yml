@@ -44,7 +44,7 @@ functions:
     environment:
       LOANS_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.loansQueue}
       LOAN_CACHE_TABLE: ${self:custom.TableNames.${opt:stage}.userCacheTable}
-      ALMA_KEY: ${env:ALMA_API_KEY}
+      ALMA_KEY_KEY_NAME: ${env:ALMA_API_KEY_NAME}
 resources:
   Resources:
     loansQueue:

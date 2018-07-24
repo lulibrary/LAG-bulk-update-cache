@@ -48,7 +48,6 @@ describe('create-user-from-api tests', () => {
 
       return createUser(testUserData)
         .then((testUser) => {
-          createUser
           createStub.should.have.been.calledWith({
             primary_id: testUserID,
             loan_ids: [],
@@ -137,6 +136,7 @@ describe('create-user-from-api tests', () => {
       const createUserStub = sandbox.stub()
       wires.push(createUserFromApi.__set__('getUserData', getDataStub))
       wires.push(createUserFromApi.__set__('createUserInCache', createUserStub))
+      wires.push(createUserFromApi.__set__('getApiKey', () => Promise.resolve()))
       getDataStub.resolves({
         id: testUserID,
         loans: testLoans,

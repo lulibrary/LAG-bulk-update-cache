@@ -91,6 +91,8 @@ describe('create-loan-from-api tests', () => {
       const createLoanStub = sandbox.stub()
       wires.push(createLoanFromApi.__set__('getLoanData', getDataStub))
       wires.push(createLoanFromApi.__set__('createLoanInCache', createLoanStub))
+      wires.push(createLoanFromApi.__set__('getApiKey', () => Promise.resolve()))
+
       getDataStub.resolves({
         id: testLoanID,
         title: testTitle,

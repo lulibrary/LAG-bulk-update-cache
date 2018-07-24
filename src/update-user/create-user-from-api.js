@@ -2,8 +2,11 @@
 const AlmaClient = require('alma-api-wrapper')
 const { UserSchema } = require('@lulibrary/lag-alma-utils')
 const CacheUser = UserSchema(process.env.USER_CACHE_TABLE)
+const getApiKey = require('../get-alma-api-key')
 
-const createUserFromApi = (userID) => getUserData(userID).then(createUserInCache)
+const createUserFromApi = (userID) => getApiKey()
+  .then(() => getUserData(userID))
+  .then(createUserInCache)
 
 const getUserData = (userID) => {
   const almaApi = new AlmaClient()
