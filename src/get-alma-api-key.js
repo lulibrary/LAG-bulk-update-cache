@@ -9,8 +9,8 @@ const getAlmaApiKey = () => {
     })
     .promise()
     .then(data => {
-      process.env.ALMA_KEY = data.Value
-      return data.Value
+      process.env.ALMA_KEY = data.Parameter.Value
+      return data.Parameter.Value
     })
 }
 

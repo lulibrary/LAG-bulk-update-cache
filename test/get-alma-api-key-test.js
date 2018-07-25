@@ -21,7 +21,7 @@ describe('get alma api key module tests', () => {
   })
   it('should call SSM getParameter', () => {
     const getParameterStub = sandbox.stub()
-    getParameterStub.callsArgWith(1, null, true)
+    getParameterStub.callsArgWith(1, null, { Parameter: { Value: '' } })
     AWS_MOCK.mock('SSM', 'getParameter', getParameterStub)
 
     const testKeyName = `Test_key_${uuid()}`
