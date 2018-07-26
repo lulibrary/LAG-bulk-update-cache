@@ -2,8 +2,11 @@
 const AlmaClient = require('alma-api-wrapper')
 const { LoanSchema } = require('@lulibrary/lag-alma-utils')
 const CacheLoan = LoanSchema(process.env.LOAN_CACHE_TABLE)
+const getApiKey = require('../get-alma-api-key')
 
-const createLoanFromApi = (userID, loanID) => getLoanData(userID, loanID).then(createLoanInCache)
+const createLoanFromApi = (userID, loanID) => getApiKey()
+  .then(() => getLoanData(userID, loanID))
+  .then(createLoanInCache)
 
 const getLoanData = (userID, loanID) => {
   const almaApi = new AlmaClient()

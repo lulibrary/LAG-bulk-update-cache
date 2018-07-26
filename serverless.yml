@@ -23,8 +23,13 @@ provider:
         - dynamodb:DeleteItem
         - dynamodb:DescribeTable
       Resource:
-        - ${self:custom.TableArns.${opt:stage}.userCacheTable}
-        - ${self:custom.TableArns.${opt:stage}.loanCacheTable}
+        - ${self:custom.TableArns.${opt:stage}.usersCacheTable}
+        - ${self:custom.TableArns.${opt:stage}.loansCacheTable}
+    - Effect: Allow
+      Action:
+        -ssm:GetParameter
+      Resource:
+        - ${env:ALMA_API_KEY_ARN}
 
 functions:
   updateUser:
@@ -35,16 +40,16 @@ functions:
       USERS_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.usersQueue}
       LOANS_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.loansQueue}
       REQUESTS_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.requestsQueue}
-      USER_CACHE_TABLE: ${self:custom.TableNames.${opt:stage}.userCacheTable}
-      ALMA_KEY: ${env:ALMA_API_KEY}
+      USER_CACHE_TABLE: ${self:custom.TableNames.${opt:stage}.usersCacheTable}
+      ALMA_API_KEY_NAME: ${env:ALMA_API_KEY_NAME}
   updateLoan:
     handler: src/update-loan/handler.handle
     events:
       - sqs: ${self:custom.QueueArns.${opt:stage}.loansQueue}
     environment:
       LOANS_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.loansQueue}
-      LOAN_CACHE_TABLE: ${self:custom.TableNames.${opt:stage}.userCacheTable}
-      ALMA_KEY: ${env:ALMA_API_KEY}
+      LOAN_CACHE_TABLE: ${self:custom.TableNames.${opt:stage}.loansCacheTable}
+      ALMA_API_KEY_NAME: ${env:ALMA_API_KEY_NAME}
 resources:
   Resources:
     loansQueue:
@@ -59,18 +64,18 @@ resources:
 custom:
   TableArns:
     stg:
-      userCacheTable: ${env:USER_CACHE_TABLE_ARN_STG}
-      loanCacheTable: ${env:LOAN_CACHE_TABLE_ARN_STG}
+      usersCacheTable: ${env:USER_CACHE_TABLE_ARN_STG}
+      loansCacheTable: ${env:LOAN_CACHE_TABLE_ARN_STG}
     prod:
-      userCacheTable: ${env:USER_CACHE_TABLE_ARN_PROD}
-      loanCacheTable: ${env:LOAN_CACHE_TABLE_ARN_PROD}
+      usersCacheTable: ${env:USER_CACHE_TABLE_ARN_PROD}
+      loansCacheTable: ${env:LOAN_CACHE_TABLE_ARN_PROD}
   TableNames:
     stg:
-      userCacheTable: ${env:USER_CACHE_TABLE_NAME_STG}
-      loanCacheTable: ${env:LOAN_CACHE_TABLE_NAME_STG}
+      usersCacheTable: ${env:USER_CACHE_TABLE_NAME_STG}
+      loansCacheTable: ${env:LOAN_CACHE_TABLE_NAME_STG}
     prod:
-      userCacheTable: ${env:USER_CACHE_TABLE_NAME_PROD}
-      loanCacheTable: ${env:LOAN_CACHE_TABLE_NAME_PROD}
+      usersCacheTable: ${env:USER_CACHE_TABLE_NAME_PROD}
+      loansCacheTable: ${env:LOAN_CACHE_TABLE_NAME_PROD}
   QueueArns:
     stg:
       usersQueue: ${env:USER_QUEUE_ARN_STG}
