@@ -9,7 +9,7 @@ provider:
     - Effect: Allow
       Action:
         - sqs:SendMessage
-        - sqs:GetQueueURL
+        - sqs:GetQueueUrl
         - sqs:ReceiveMessage
         - sqs:DeleteMessage
       Resource:
@@ -27,7 +27,7 @@ provider:
         - ${self:custom.TableArns.${opt:stage}.loansCacheTable}
     - Effect: Allow
       Action:
-        -ssm:GetParameter
+        - ssm:GetParameter
       Resource:
         - ${env:ALMA_API_KEY_ARN}
 
@@ -50,6 +50,7 @@ functions:
       LOANS_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.loansQueue}
       LOAN_CACHE_TABLE: ${self:custom.TableNames.${opt:stage}.loansCacheTable}
       ALMA_API_KEY_NAME: ${env:ALMA_API_KEY_NAME}
+
 resources:
   Resources:
     loansQueue:
