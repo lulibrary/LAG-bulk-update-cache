@@ -35,30 +35,7 @@ describe('update user handler tests', () => {
   })
 
   describe('handler method tests', () => {
-    // it('should call receiveMessages on the Users Queue', () => {
-    //   const receiveMessagesStub = sandbox.stub(Queue.prototype, 'receiveMessages')
-    //   receiveMessagesStub.resolves(true)
-
-    //   wires.push(
-    //     updateUserHandler.__set__('handleMessages', () => Promise.resolve()),
-    //     updateUserHandler.__set__('updateUser', () => Promise.resolve()),
-    //     updateUserHandler.__set__('handleLoansAndRequests', () => Promise.resolve()),
-    //     updateUserHandler.__set__('deleteMessage', () => Promise.resolve())
-    //   )
-
-    //   return handler()
-    //     .then(() => {
-    //       receiveMessagesStub.should.have.been.called
-    //     })
-    // })
-
     it('should call handleMessages with the event Records', () => {
-      // const receiveMessagesStub = sandbox.stub(Queue.prototype, 'receiveMessages')
-      // receiveMessagesStub.resolves([{
-      //   Body: 'test_message_body',
-      //   ReceiptHandle: 'test_message_handle'
-      // }])
-
       const testEvent = { Records: [{
         Body: 'test_message_body',
         ReceiptHandle: 'test_message_handle'
@@ -71,7 +48,6 @@ describe('update user handler tests', () => {
         updateUserHandler.__set__('handleMessages', handleMessageStub),
         updateUserHandler.__set__('updateUser', () => Promise.resolve()),
         updateUserHandler.__set__('handleLoansAndRequests', () => Promise.resolve())
-        // updateUserHandler.__set__('deleteMessage', () => Promise.resolve())
       )
 
       return handler(testEvent)
@@ -110,8 +86,6 @@ describe('update user handler tests', () => {
         ReceiptHandle: uuid()
       }]
 
-      // const receiveMessagesStub = sandbox.stub(Queue.prototype, 'receiveMessages')
-      // receiveMessagesStub.resolves(testMessages)
       const testEvent = { Records: testMessages }
 
       const updateUserStub = sandbox.stub()
@@ -120,7 +94,6 @@ describe('update user handler tests', () => {
       wires.push(
         updateUserHandler.__set__('updateUser', updateUserStub),
         updateUserHandler.__set__('handleLoansAndRequests', () => Promise.resolve())
-        // updateUserHandler.__set__('deleteMessage', () => Promise.resolve())
       )
 
       return handler(testEvent)
@@ -131,55 +104,17 @@ describe('update user handler tests', () => {
         })
     })
 
-    // it('should call deleteMessage with each message object', () => {
-    //   const testReceiptHandles = [uuid(), uuid(), uuid()]
-    //   const testMessages = [{
-    //     Body: uuid(),
-    //     ReceiptHandle: testReceiptHandles[0]
-    //   }, {
-    //     Body: uuid(),
-    //     ReceiptHandle: testReceiptHandles[1]
-    //   }, {
-    //     Body: uuid(),
-    //     ReceiptHandle: testReceiptHandles[2]
-    //   }]
-
-    //   // const receiveMessagesStub = sandbox.stub(Queue.prototype, 'receiveMessages')
-    //   // receiveMessagesStub.resolves(testMessages)
-    //   const testEvent = { Records: testMessages }
-
-    //   const deleteMessageStub = sandbox.stub()
-    //   deleteMessageStub.resolves()
-
-    //   wires.push(
-    //     updateUserHandler.__set__('updateUser', () => Promise.resolve()),
-    //     updateUserHandler.__set__('handleLoansAndRequests', () => Promise.resolve()),
-    //     updateUserHandler.__set__('deleteMessage', deleteMessageStub)
-    //   )
-
-    //   return handler(testEvent)
-    //     .then(() => {
-    //       testMessages.forEach(message => {
-    //         deleteMessageStub.should.have.been.calledWith(message)
-    //       })
-    //     })
-    // })
-
     it('should default to an empty message array, and not call updateUser', () => {
       const updateUserStub = sandbox.stub()
       updateUserStub.resolves()
-      // const deleteMessageStub = sandbox.stub()
-      // deleteMessageStub.resolves()
 
       wires.push(
         updateUserHandler.__set__('updateUser', updateUserStub)
-        // updateUserHandler.__set__('deleteMessage', deleteMessageStub)
       )
 
       return handleMessages()
         .then(() => {
           updateUserStub.should.not.have.been.called
-          // deleteMessageStub.should.not.have.been.called
         })
     })
   })
@@ -316,23 +251,4 @@ describe('update user handler tests', () => {
         })
     })
   })
-
-  // describe('deleteMessage method tests', () => {
-  //   const deleteMessage = updateUserHandler.__get__('deleteMessage')
-  //   it('should call deleteMessage on the users Queue', () => {
-  //     const deleteMessageStub = sandbox.stub(Queue.prototype, 'deleteMessage')
-  //     deleteMessageStub.resolves()
-
-  //     const testHandle = uuid()
-
-  //     const testMessage = {
-  //       ReceiptHandle: testHandle
-  //     }
-
-  //     return deleteMessage(testMessage)
-  //       .then(() => {
-  //         deleteMessageStub.should.have.been.calledWith(testHandle)
-  //       })
-  //   })
-  // })
 })
