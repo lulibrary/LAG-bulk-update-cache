@@ -37,7 +37,7 @@ describe('update user handler tests', () => {
   describe('handler method tests', () => {
     it('should call handleMessages with the event Records', () => {
       const testEvent = { Records: [{
-        Body: 'test_message_body',
+        body: 'test_message_body',
         ReceiptHandle: 'test_message_handle'
       }]}
 
@@ -53,7 +53,7 @@ describe('update user handler tests', () => {
       return handler(testEvent)
         .then(() => {
           handleMessageStub.should.have.been.calledWith([{
-            Body: 'test_message_body',
+            body: 'test_message_body',
             ReceiptHandle: 'test_message_handle'
           }])
         })
@@ -76,13 +76,13 @@ describe('update user handler tests', () => {
     it('should call updateUser with each message body', () => {
       const testUserIDs = [uuid(), uuid(), uuid()]
       const testMessages = [{
-        Body: testUserIDs[0],
+        body: testUserIDs[0],
         ReceiptHandle: uuid()
       }, {
-        Body: testUserIDs[1],
+        body: testUserIDs[1],
         ReceiptHandle: uuid()
       }, {
-        Body: testUserIDs[2],
+        body: testUserIDs[2],
         ReceiptHandle: uuid()
       }]
 
@@ -99,7 +99,7 @@ describe('update user handler tests', () => {
       return handler(testEvent)
         .then(() => {
           testMessages.forEach(message => {
-            updateUserStub.should.have.been.calledWith(message.Body)
+            updateUserStub.should.have.been.calledWith(message.body)
           })
         })
     })
