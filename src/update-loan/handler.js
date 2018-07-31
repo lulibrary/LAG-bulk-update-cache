@@ -16,7 +16,7 @@ module.exports.handle = (event, context, callback) => {
 const handleMessages = (messages = []) => {
   return Promise.all(
     messages.map((message) =>
-      updateLoan(JSON.parse(message.Body))
+      updateLoan(JSON.parse(message.body))
     ))
 }
 
