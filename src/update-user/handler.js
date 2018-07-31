@@ -1,16 +1,10 @@
 'use strict'
-const { Queue } = require('@lulibrary/lag-utils')
 
 const createUserFromApi = require('./create-user-from-api')
 const sendToQueue = require('./send-to-queue')
 
-const usersQueue = new Queue({
-  url: process.env.USERS_QUEUE_URL
-})
-
 module.exports.handle = (event, context, callback) => {
-  usersQueue.receiveMessages()
-    .then(handleMessages)
+  handleMessages(event.Records)
     .then(() => {
       callback(null, 'Successfully updated users cache')
     })
@@ -24,7 +18,6 @@ const handleMessages = (messages = []) => {
   return Promise.all(
     messages.map(message =>
       updateUser(message.Body)
-        .then(() => deleteMessage(message))
     ))
 }
 
@@ -49,8 +42,4 @@ const buildMessages = (user, arrayKey, idKey) => {
     [idKey]: id,
     userID: user.primary_id
   }))
-}
-
-const deleteMessage = (message) => {
-  return usersQueue.deleteMessage(message.ReceiptHandle)
 }

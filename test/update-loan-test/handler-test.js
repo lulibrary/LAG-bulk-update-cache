@@ -35,39 +35,21 @@ describe('update loan handler tests', () => {
   })
 
   describe('handler method tests', () => {
-    it('should call receiveMessages on the Loans Queue', () => {
-      const receiveMessagesStub = sandbox.stub(Queue.prototype, 'receiveMessages')
-      receiveMessagesStub.resolves(true)
-
-      wires.push(
-        updateLoanHandler.__set__('handleMessages', () => Promise.resolve()),
-        updateLoanHandler.__set__('updateLoan', () => Promise.resolve()),
-        updateLoanHandler.__set__('deleteMessage', () => Promise.resolve())
-      )
-
-      return handler()
-        .then(() => {
-          receiveMessagesStub.should.have.been.called
-        })
-    })
-
-    it('should call handleMessages with the response of recieveMesages', () => {
-      const receiveMessagesStub = sandbox.stub(Queue.prototype, 'receiveMessages')
-      receiveMessagesStub.resolves([{
+    it('should call handleMessages with the event Records', () => {
+      const testEvent = { Records: [{
         Body: JSON.stringify({ test: 'test_id' }),
         ReceiptHandle: 'test_message_handle'
-      }])
+      }]}
 
       const handleMessageStub = sandbox.stub()
       handleMessageStub.resolves()
 
       wires.push(
         updateLoanHandler.__set__('handleMessages', handleMessageStub),
-        updateLoanHandler.__set__('updateLoan', () => Promise.resolve()),
-        updateLoanHandler.__set__('deleteMessage', () => Promise.resolve())
+        updateLoanHandler.__set__('updateLoan', () => Promise.resolve())
       )
 
-      return handler()
+      return handler(testEvent)
         .then(() => {
           handleMessageStub.should.have.been.calledWith([{
             Body: JSON.stringify({ test: 'test_id' }),
@@ -104,15 +86,11 @@ describe('update loan handler tests', () => {
         ReceiptHandle: uuid()
       }]
 
-      // const receiveMessagesStub = sandbox.stub(Queue.prototype, 'receiveMessages')
-      // receiveMessagesStub.resolves(testMessages)
-
       const updateLoanStub = sandbox.stub()
       updateLoanStub.resolves()
 
       wires.push(
-        updateLoanHandler.__set__('updateLoan', updateLoanStub),
-        updateLoanHandler.__set__('deleteMessage', () => Promise.resolve())
+        updateLoanHandler.__set__('updateLoan', updateLoanStub)
       )
 
       return handleMessages(testMessages)
@@ -123,53 +101,17 @@ describe('update loan handler tests', () => {
         })
     })
 
-    it('should call deleteMessage with each message object', () => {
-      const testReceiptHandles = [uuid(), uuid(), uuid()]
-      const testMessages = [{
-        Body: JSON.stringify({ id: uuid() }),
-        ReceiptHandle: testReceiptHandles[0]
-      }, {
-        Body: JSON.stringify({ id: uuid() }),
-        ReceiptHandle: testReceiptHandles[1]
-      }, {
-        Body: JSON.stringify({ id: uuid() }),
-        ReceiptHandle: testReceiptHandles[2]
-      }]
-
-      // const receiveMessagesStub = sandbox.stub(Queue.prototype, 'receiveMessages')
-      // receiveMessagesStub.resolves(testMessages)
-
-      const deleteMessageStub = sandbox.stub()
-      deleteMessageStub.resolves()
-
-      wires.push(
-        updateLoanHandler.__set__('updateLoan', () => Promise.resolve()),
-        updateLoanHandler.__set__('deleteMessage', deleteMessageStub)
-      )
-
-      return handleMessages(testMessages)
-        .then(() => {
-          testMessages.forEach(message => {
-            deleteMessageStub.should.have.been.calledWith(message)
-          })
-        })
-    })
-
     it('should default to an empty message array, and not call updateLoan or deleteMessage', () => {
       const updateLoanStub = sandbox.stub()
       updateLoanStub.resolves()
-      const deleteMessageStub = sandbox.stub()
-      deleteMessageStub.resolves()
 
       wires.push(
-        updateLoanHandler.__set__('updateLoan', updateLoanStub),
-        updateLoanHandler.__set__('deleteMessage', deleteMessageStub)
+        updateLoanHandler.__set__('updateLoan', updateLoanStub)
       )
 
       return handleMessages()
         .then(() => {
           updateLoanStub.should.not.have.been.called
-          deleteMessageStub.should.not.have.been.called
         })
     })
   })
@@ -191,25 +133,6 @@ describe('update loan handler tests', () => {
       return updateLoan({ userID: testUserID, loanID: testLoanID })
         .then(() => {
           createLoanStub.should.have.been.calledWith(testUserID, testLoanID)
-        })
-    })
-  })
-
-  describe('deleteMessage method tests', () => {
-    const deleteMessage = updateLoanHandler.__get__('deleteMessage')
-    it('should call deleteMessage on the loans Queue', () => {
-      const deleteMessageStub = sandbox.stub(Queue.prototype, 'deleteMessage')
-      deleteMessageStub.resolves()
-
-      const testHandle = uuid()
-
-      const testMessage = {
-        ReceiptHandle: testHandle
-      }
-
-      return deleteMessage(testMessage)
-        .then(() => {
-          deleteMessageStub.should.have.been.calledWith(testHandle)
         })
     })
   })

@@ -35,9 +35,9 @@ functions:
   updateUser:
     handler: src/update-user/handler.handle
     events:
-      - sqs: ${self:custom.QueueArns.${opt:stage}.usersQueue}
+      - sqs: 
+          arn: ${self:custom.QueueArns.${opt:stage}.usersQueue}
     environment:
-      USERS_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.usersQueue}
       LOANS_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.loansQueue}
       REQUESTS_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.requestsQueue}
       USER_CACHE_TABLE: ${self:custom.TableNames.${opt:stage}.usersCacheTable}
@@ -45,9 +45,9 @@ functions:
   updateLoan:
     handler: src/update-loan/handler.handle
     events:
-      - sqs: ${self:custom.QueueArns.${opt:stage}.loansQueue}
+      - sqs:
+          arn: ${self:custom.QueueArns.${opt:stage}.loansQueue}
     environment:
-      LOANS_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.loansQueue}
       LOAN_CACHE_TABLE: ${self:custom.TableNames.${opt:stage}.loansCacheTable}
       ALMA_API_KEY_NAME: ${env:ALMA_API_KEY_NAME}
 
