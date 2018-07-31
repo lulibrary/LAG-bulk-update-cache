@@ -17,7 +17,7 @@ module.exports.handle = (event, context, callback) => {
 const handleMessages = (messages = []) => {
   return Promise.all(
     messages.map(message =>
-      updateUser(message.Body)
+      updateUser(message.body)
     ))
 }
 
