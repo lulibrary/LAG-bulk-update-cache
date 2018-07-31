@@ -37,7 +37,7 @@ describe('update loan handler tests', () => {
   describe('handler method tests', () => {
     it('should call handleMessages with the event Records', () => {
       const testEvent = { Records: [{
-        Body: JSON.stringify({ test: 'test_id' }),
+        body: JSON.stringify({ test: 'test_id' }),
         ReceiptHandle: 'test_message_handle'
       }]}
 
@@ -52,7 +52,7 @@ describe('update loan handler tests', () => {
       return handler(testEvent)
         .then(() => {
           handleMessageStub.should.have.been.calledWith([{
-            Body: JSON.stringify({ test: 'test_id' }),
+            body: JSON.stringify({ test: 'test_id' }),
             ReceiptHandle: 'test_message_handle'
           }])
         })
@@ -76,13 +76,13 @@ describe('update loan handler tests', () => {
       const testLoanIDs = [uuid(), uuid(), uuid()]
       const testBodies = testLoanIDs.map(id => JSON.stringify({ loanID: id }))
       const testMessages = [{
-        Body: testBodies[0],
+        body: testBodies[0],
         ReceiptHandle: uuid()
       }, {
-        Body: testBodies[1],
+        body: testBodies[1],
         ReceiptHandle: uuid()
       }, {
-        Body: testBodies[2],
+        body: testBodies[2],
         ReceiptHandle: uuid()
       }]
 
