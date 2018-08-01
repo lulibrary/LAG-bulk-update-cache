@@ -25,6 +25,7 @@ provider:
       Resource:
         - ${self:custom.TableArns.${opt:stage}.usersCacheTable}
         - ${self:custom.TableArns.${opt:stage}.loansCacheTable}
+        - ${self:custom.TableArns.${opt:stage}.requestsCacheTable}
     - Effect: Allow
       Action:
         - ssm:GetParameter
