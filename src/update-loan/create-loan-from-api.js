@@ -5,13 +5,8 @@ const CacheLoan = LoanSchema(process.env.LOAN_CACHE_TABLE)
 const getApiKey = require('../get-alma-api-key')
 
 const createLoanFromApi = (userID, loanID) => getApiKey()
-  .then(() => getLoanData(userID, loanID))
+  .then(() => new AlmaClient().users.for(userID).getLoan(loanID))
   .then(createLoanInCache)
-
-const getLoanData = (userID, loanID) => {
-  const almaApi = new AlmaClient()
-  return almaApi.users.for(userID).getLoan(loanID)
-}
 
 const createLoanInCache = (loan) => CacheLoan.create(loan.data)
 
