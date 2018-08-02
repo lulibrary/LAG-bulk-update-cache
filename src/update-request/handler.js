@@ -1,6 +1,7 @@
 'use strict'
 
 const createRequestFromApi = require('./create-request-from-api')
+const parseMessages = require('../parse-messages')
 
 module.exports.handle = (event, context, callback) => {
   handleMessages(event.Records)
@@ -13,12 +14,7 @@ module.exports.handle = (event, context, callback) => {
     })
 }
 
-const handleMessages = (messages = []) => {
-  return Promise.all(
-    messages.map((message) =>
-      updateRequest(JSON.parse(message.body))
-    ))
-}
+const handleMessages = (messages) => Promise.all(parseMessages(messages).map(updateRequest))
 
 const updateRequest = (IDs) => {
   return createRequestFromApi(IDs.userID, IDs.requestID)
