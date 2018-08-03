@@ -68,12 +68,12 @@ resources:
           deadLetterTargetArn: ${self:custom.queueArns.DLQs.requestsDLQ}
           maxReceiveCount: 3
     loansDLQ:
-      type: AWS::SQS::Queue
+      Type: AWS::SQS::Queue
       Properties:
         QueueName: ${self:service}-${opt:stage}-loansDLQ
         MessageRetentionPeriod: 1209600
     requestsDLQ:
-      type: AWS::SQS::Queue
+      Type: AWS::SQS::Queue
       Properties:
         QueueName: ${self:service}-${opt:stage}-requestsDLQ
         MessageRetentionPeriod: 1209600
