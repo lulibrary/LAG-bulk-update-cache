@@ -57,11 +57,16 @@ resources:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: ${self:service}-${opt:stage}-loansQueue
-
+        RedrivePolicy:
+          deadLetterTargetArn: ${self:custom.queueArns.DLQs.loansDLQ}
+          maxReceiveCount: 3
     requestsQueue:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: ${self:service}-${opt:stage}-requestsQueue
+        RedrivePolicy:
+          deadLetterTargetArn: ${self:custom.queueArns.DLQs.requestsDLQ}
+          maxReceiveCount: 3
     loansDLQ:
       type: AWS::SQS::Queue
       Properties:
