@@ -57,10 +57,26 @@ resources:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: ${self:service}-${opt:stage}-loansQueue
+        RedrivePolicy:
+          deadLetterTargetArn: ${self:custom.queueArns.DLQs.loansDLQ}
+          maxReceiveCount: 3
     requestsQueue:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: ${self:service}-${opt:stage}-requestsQueue
+        RedrivePolicy:
+          deadLetterTargetArn: ${self:custom.queueArns.DLQs.requestsDLQ}
+          maxReceiveCount: 3
+    loansDLQ:
+      type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${opt:stage}-loansDLQ
+        MessageRetentionPeriod: 1209600
+   requestsDLQ:
+      type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${opt:stage}-requestsDLQ
+        MessageRetentionPeriod: 1209600
 
 custom:
   TableArns:
@@ -90,6 +106,11 @@ custom:
         "Fn::GetAtt": ["loansQueue", "Arn"]
       requestsQueue:
         "Fn::GetAtt": ["requestsQueue", "Arn"]
+    DLQs:
+      loansDLQ:
+        "Fn::GetAtt": ["loansDLQ", "Arn"]
+      requestsDLQ:
+        "Fn::GetAtt": ["requestsDLQ", "Arn"]
 
   QueueUrls:
     stg:
@@ -104,3 +125,8 @@ custom:
         Ref: loansQueue
       requestsQueue:
         Ref: requestsQueue
+    DLQs:
+      loansDLQ:
+        Ref: loansDLQ
+      requestsDLQ:
+        Ref: requestsDLQ
