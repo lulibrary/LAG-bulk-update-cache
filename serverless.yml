@@ -57,6 +57,7 @@ resources:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: ${self:service}-${opt:stage}-loansQueue
+
     requestsQueue:
       Type: AWS::SQS::Queue
       Properties:
@@ -65,6 +66,11 @@ resources:
       type: AWS::SQS::Queue
       Properties:
         QueueName: ${self:service}-${opt:stage}-loansDLQ
+        MessageRetentionPeriod: 1209600
+   requestsDLQ:
+      type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${opt:stage}-requestsDLQ
         MessageRetentionPeriod: 1209600
 
 custom:
@@ -98,6 +104,8 @@ custom:
     DLQs:
       loansDLQ:
         "Fn::GetAtt": ["loansDLQ", "Arn"]
+      requestsDLQ:
+        "Fn::GetAtt": ["requestsDLQ", "Arn"]
 
   QueueUrls:
     stg:
@@ -115,3 +123,5 @@ custom:
     DLQs:
       loansDLQ:
         Ref: loansDLQ
+      requestsDLQ:
+        Ref: requestsDLQ
