@@ -13,13 +13,15 @@ const getUserData = (userID) => {
   const apiUser = almaApi.users.for(userID)
   return Promise.all([
     apiUser.loans(),
-    apiUser.requests()
+    apiUser.requests(),
+    apiUser.fees()
   ])
     .then(data => {
       return {
         id: userID,
         loans: data[0],
-        requests: data[1]
+        requests: data[1],
+        fees: data[2]
       }
     })
 }
@@ -28,7 +30,8 @@ const createUserInCache = (userData) => {
   return CacheUser.create({
     primary_id: userData.id,
     loan_ids: Array.from(userData.loans.keys()),
-    request_ids: Array.from(userData.requests.keys())
+    request_ids: Array.from(userData.requests.keys()),
+    fee_ids: Array.from(userData.fees.keys())
   })
 }
 
