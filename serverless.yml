@@ -16,6 +16,7 @@ provider:
         - ${self:custom.QueueArns.${opt:stage}.usersQueue}
         - ${self:custom.QueueArns.${opt:stage}.loansQueue}
         - ${self:custom.QueueArns.${opt:stage}.requestsQueue}
+        - ${self:custom.QueueArns.${opt:stage}.feesQueue}
     - Effect: Allow
       Action:
         - dynamodb:GetItem
@@ -40,6 +41,7 @@ functions:
     environment:
       LOANS_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.loansQueue}
       REQUESTS_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.requestsQueue}
+      FEES_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.feesQueue}
       USER_CACHE_TABLE: ${self:custom.TableNames.${opt:stage}.usersCacheTable}
       ALMA_API_KEY_NAME: ${env:ALMA_API_KEY_NAME}
   updateLoan:
@@ -67,6 +69,13 @@ resources:
         RedrivePolicy:
           deadLetterTargetArn: ${self:custom.QueueArns.DLQs.requestsDLQ}
           maxReceiveCount: 3
+    feesQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${opt:stage}-feesQueue
+        RedrivePolicy:
+          deadLetterTargetArn: ${self:custom.QueueArns.DLQs.feesDLQ}
+          maxReceiveCount: 3
     loansDLQ:
       Type: AWS::SQS::Queue
       Properties:
@@ -76,6 +85,11 @@ resources:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: ${self:service}-${opt:stage}-requestsDLQ
+        MessageRetentionPeriod: 1209600
+    feesDLQ:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${opt:stage}-feesDLQ
         MessageRetentionPeriod: 1209600
 
 custom:
@@ -100,17 +114,23 @@ custom:
         "Fn::GetAtt": ["loansQueue", "Arn"]
       requestsQueue:
         "Fn::GetAtt": ["requestsQueue", "Arn"]
+      feesQueue:
+        "Fn::GetAtt": ["feesQueue", "Arn"]
     prod:
       usersQueue: ${env:USER_QUEUE_ARN_PROD}
       loansQueue:
         "Fn::GetAtt": ["loansQueue", "Arn"]
       requestsQueue:
         "Fn::GetAtt": ["requestsQueue", "Arn"]
+      feesQueue:
+        "Fn::GetAtt": ["feesQueue", "Arn"]
     DLQs:
       loansDLQ:
         "Fn::GetAtt": ["loansDLQ", "Arn"]
       requestsDLQ:
         "Fn::GetAtt": ["requestsDLQ", "Arn"]
+      feesDLQ:
+        "Fn::GetAtt": ["feesDLQ", "Arn"]
 
   QueueUrls:
     stg:
