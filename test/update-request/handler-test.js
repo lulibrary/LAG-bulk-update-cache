@@ -1,5 +1,6 @@
-// Test libraries
 const AWS_MOCK = require('aws-sdk-mock')
+
+// Test libraries
 const sinon = require('sinon')
 const sandbox = sinon.createSandbox()
 
@@ -14,8 +15,8 @@ const uuid = require('uuid')
 const rewire = require('rewire')
 let wires = []
 
-const testLoanTable = `loan_table_${uuid()}`
-process.env.LOAN_CACHE_TABLE = testLoanTable
+const testRequestTable = `request_table_${uuid()}`
+process.env.REQUEST_CACHE_TABLE = testRequestTable
 
 const mocks = require('../mocks')
 
@@ -24,21 +25,21 @@ const { Queue } = require('@lulibrary/lag-utils')
 const AlmaUser = require('alma-api-wrapper/src/user')
 
 // Module under test
-const updateLoanHandler = rewire('../../src/update-loan/handler')
+const updateRequestHandler = rewire('../../src/update-request/handler')
 const handler = (event = {}, ctx = {}) => new Promise((resolve, reject) => {
-  updateLoanHandler.handle(event, ctx, (err, res) => {
+  updateRequestHandler.handle(event, ctx, (err, res) => {
     return err ? reject(err) : resolve(res)
   })
 })
 
-describe('update loan handler tests', () => {
+describe('update request handler tests', () => {
   afterEach(() => {
     sandbox.restore()
     wires.forEach(wire => wire())
     wires = []
   })
   it('should export a handler function', () => {
-    updateLoanHandler.handle.should.be.an.instanceOf(Function)
+    updateRequestHandler.handle.should.be.an.instanceOf(Function)
   })
 
   describe('handler method tests', () => {
@@ -52,8 +53,8 @@ describe('update loan handler tests', () => {
       handleMessageStub.resolves()
 
       wires.push(
-        updateLoanHandler.__set__('handleMessages', handleMessageStub),
-        updateLoanHandler.__set__('updateLoan', () => Promise.resolve())
+        updateRequestHandler.__set__('handleMessages', handleMessageStub),
+        updateRequestHandler.__set__('updateRequest', () => Promise.resolve())
       )
 
       return handler(testEvent)
@@ -69,7 +70,7 @@ describe('update loan handler tests', () => {
       sandbox.stub(Queue.prototype, 'receiveMessages').resolves()
       const handleMessageStub = sandbox.stub()
       handleMessageStub.rejects()
-      wires.push(updateLoanHandler.__set__('handleMessages', handleMessageStub))
+      wires.push(updateRequestHandler.__set__('handleMessages', handleMessageStub))
       sandbox.stub(console, 'log')
 
       return handler().should.eventually.be.rejectedWith('An error has occured')
@@ -77,11 +78,11 @@ describe('update loan handler tests', () => {
   })
 
   describe('handleMessages method tests', () => {
-    const handleMessages = updateLoanHandler.__get__('handleMessages')
+    const handleMessages = updateRequestHandler.__get__('handleMessages')
 
-    it('should call updateLoan with each message body', () => {
-      const testLoanIDs = [uuid(), uuid(), uuid()]
-      const testBodies = testLoanIDs.map(id => JSON.stringify({ loanID: id }))
+    it('should call updateRequest with each message body', () => {
+      const testRequestIDs = [uuid(), uuid(), uuid()]
+      const testBodies = testRequestIDs.map(id => JSON.stringify({ requestID: id }))
       const testMessages = [{
         body: testBodies[0],
         ReceiptHandle: uuid()
@@ -93,53 +94,53 @@ describe('update loan handler tests', () => {
         ReceiptHandle: uuid()
       }]
 
-      const updateLoanStub = sandbox.stub()
-      updateLoanStub.resolves()
+      const updateRequestStub = sandbox.stub()
+      updateRequestStub.resolves()
 
       wires.push(
-        updateLoanHandler.__set__('updateLoan', updateLoanStub)
+        updateRequestHandler.__set__('updateRequest', updateRequestStub)
       )
 
       return handleMessages(testMessages)
         .then(() => {
-          testLoanIDs.forEach(id => {
-            updateLoanStub.should.have.been.calledWith({ loanID: id })
+          testRequestIDs.forEach(id => {
+            updateRequestStub.should.have.been.calledWith({ requestID: id })
           })
         })
     })
 
-    it('should default to an empty message array, and not call updateLoan or deleteMessage', () => {
-      const updateLoanStub = sandbox.stub()
-      updateLoanStub.resolves()
+    it('should default to an empty message array, and not call updateRequest or deleteMessage', () => {
+      const updateRequestStub = sandbox.stub()
+      updateRequestStub.resolves()
 
       wires.push(
-        updateLoanHandler.__set__('updateLoan', updateLoanStub)
+        updateRequestHandler.__set__('updateRequest', updateRequestStub)
       )
 
       return handleMessages()
         .then(() => {
-          updateLoanStub.should.not.have.been.called
+          updateRequestStub.should.not.have.been.called
         })
     })
   })
 
-  describe('updateLoan method tests', () => {
-    const updateLoan = updateLoanHandler.__get__('updateLoan')
+  describe('updateRequest method tests', () => {
+    const updateRequest = updateRequestHandler.__get__('updateRequest')
 
-    it('should call createLoanFromApi with the Loan ID', () => {
-      const createLoanStub = sandbox.stub()
-      createLoanStub.resolves()
+    it('should call createRequestFromApi with the Request ID', () => {
+      const createRequestStub = sandbox.stub()
+      createRequestStub.resolves()
 
       wires.push(
-        updateLoanHandler.__set__('createLoanFromApi', createLoanStub)
+        updateRequestHandler.__set__('createRequestFromApi', createRequestStub)
       )
 
       const testUserID = uuid()
-      const testLoanID = uuid()
+      const testRequestID = uuid()
 
-      return updateLoan({ userID: testUserID, loanID: testLoanID })
+      return updateRequest({ userID: testUserID, requestID: testRequestID })
         .then(() => {
-          createLoanStub.should.have.been.calledWith(testUserID, testLoanID)
+          createRequestStub.should.have.been.calledWith(testUserID, testRequestID)
         })
     })
   })
@@ -150,7 +151,7 @@ describe('update loan handler tests', () => {
 
     before(() => {
       const e2eSandbox = sinon.createSandbox()
-      apiStub = e2eSandbox.stub(AlmaUser.prototype, 'getLoan')
+      apiStub = e2eSandbox.stub(AlmaUser.prototype, 'getRequest')
       sendMessageStub = e2eSandbox.stub()
       getParameterStub = e2eSandbox.stub()
 
@@ -170,81 +171,81 @@ describe('update loan handler tests', () => {
       getParameterStub.reset()
     })
 
-    it('should query the API for each loan', () => {
+    it('should query the API for each request', () => {
       getParameterStub.callsArgWith(1, null, { Parameter: { Value: uuid() } })
       sendMessageStub.resolves()
       putStub.callsArgWith(1, null, {})
 
-      const testLoanIDs = [uuid(), uuid(), uuid()]
+      const testRequestIDs = [uuid(), uuid(), uuid()]
       const testUserID = uuid()
 
-      testLoanIDs.forEach((ID) => {
+      testRequestIDs.forEach((ID) => {
         apiStub.withArgs(ID).resolves({
           data: {
-            loan_id: ID,
-            user_id: testUserID
+            request_id: ID
           }
         })
       })
 
       const testEvent = {
-        Records: testLoanIDs.map(ID => {
+        Records: testRequestIDs.map(ID => {
           return { body: JSON.stringify({
             userID: testUserID,
-            loanID: ID
+            requestID: ID
           }) }
         })
       }
 
       return handler(testEvent, null)
         .then(() => {
-          testLoanIDs.forEach((ID, index) => {
+          testRequestIDs.forEach((ID, index) => {
             apiStub.getCall(index).should.have.been.calledWith(ID)
           })
         })
     })
 
-    it('should create a new Loan in the cache with each API response', () => {
+    it('should create a new Request in the cache with each API response', () => {
+      sandbox.stub(Date, 'now').returns(0)
       getParameterStub.callsArgWith(1, null, { Parameter: { Value: uuid() } })
       sendMessageStub.resolves()
       putStub.callsArgWith(1, null, {})
 
-      const testLoanIDs = [uuid(), uuid(), uuid()]
+      const testRequestIDs = [uuid(), uuid(), uuid()]
       const testUserID = uuid()
 
-      testLoanIDs.forEach((ID) => {
+      testRequestIDs.forEach((ID) => {
         apiStub.withArgs(ID).resolves({
           data: {
-            loan_id: ID,
-            user_id: testUserID
+            request_id: ID,
+            user_primary_id: testUserID
           }
         })
       })
 
       const testEvent = {
-        Records: testLoanIDs.map(ID => {
+        Records: testRequestIDs.map(ID => {
           return { body: JSON.stringify({
             userID: testUserID,
-            loanID: ID
+            requestID: ID
           }) }
         })
       }
 
       return handler(testEvent, null)
         .then(() => {
-          testLoanIDs.forEach((ID, index) => {
+          testRequestIDs.forEach((ID, index) => {
             putStub.getCall(index)
               .should.have.been.calledWith({
-                TableName: testLoanTable,
+                TableName: testRequestTable,
                 Item: {
-                  loan_id: {
+                  request_id: {
                     S: ID
                   },
-                  user_id: {
+                  user_primary_id: {
                     S: testUserID
                   },
-                  expiry_date: {
-                    N: '0'
+                  record_expiry_date: {
+                    N: `${2 * 7 * 24 * 60 * 60}`
                   }
                 }
               })

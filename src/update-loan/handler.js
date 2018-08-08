@@ -1,6 +1,7 @@
 'use strict'
 
 const createLoanFromApi = require('./create-loan-from-api')
+const parseMessages = require('../parse-messages')
 
 module.exports.handle = (event, context, callback) => {
   handleMessages(event.Records)
@@ -13,12 +14,7 @@ module.exports.handle = (event, context, callback) => {
     })
 }
 
-const handleMessages = (messages = []) => {
-  return Promise.all(
-    messages.map((message) =>
-      updateLoan(JSON.parse(message.body))
-    ))
-}
+const handleMessages = (messages) => Promise.all(parseMessages(messages).map(updateLoan))
 
 const updateLoan = (IDs) => {
   return createLoanFromApi(IDs.userID, IDs.loanID)

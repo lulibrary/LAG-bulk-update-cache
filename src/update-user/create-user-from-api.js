@@ -29,7 +29,7 @@ const createUserInCache = (userData) => {
     primary_id: userData.id,
     loan_ids: Array.from(userData.loans.keys()),
     request_ids: Array.from(userData.requests.keys())
-  })
+  }, { overwrite: true })
 }
 
 module.exports = createUserFromApi

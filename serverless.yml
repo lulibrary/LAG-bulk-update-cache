@@ -25,6 +25,7 @@ provider:
       Resource:
         - ${self:custom.TableArns.${opt:stage}.usersCacheTable}
         - ${self:custom.TableArns.${opt:stage}.loansCacheTable}
+        - ${self:custom.TableArns.${opt:stage}.requestsCacheTable}
     - Effect: Allow
       Action:
         - ssm:GetParameter
@@ -49,6 +50,14 @@ functions:
           arn: ${self:custom.QueueArns.${opt:stage}.loansQueue}
     environment:
       LOAN_CACHE_TABLE: ${self:custom.TableNames.${opt:stage}.loansCacheTable}
+      ALMA_API_KEY_NAME: ${env:ALMA_API_KEY_NAME}
+  updateRequest:
+    handler: src/update-request/handler.handle
+    events:
+      - sqs:
+          arn: ${self:custom.QueueArns.${opt:stage}.requestsQueue}
+    environment:
+      REQUEST_CACHE_TABLE: ${self:custom.TableNames.${opt:stage}.requestsCacheTable}
       ALMA_API_KEY_NAME: ${env:ALMA_API_KEY_NAME}
 
 resources:
@@ -83,16 +92,20 @@ custom:
     stg:
       usersCacheTable: ${env:USER_CACHE_TABLE_ARN_STG}
       loansCacheTable: ${env:LOAN_CACHE_TABLE_ARN_STG}
+      requestsCacheTable: ${env:REQUEST_CACHE_TABLE_ARN_STG}
     prod:
       usersCacheTable: ${env:USER_CACHE_TABLE_ARN_PROD}
       loansCacheTable: ${env:LOAN_CACHE_TABLE_ARN_PROD}
+      requestsCacheTable: ${env:REQUEST_CACHE_TABLE_ARN_PROD}
   TableNames:
     stg:
       usersCacheTable: ${env:USER_CACHE_TABLE_NAME_STG}
       loansCacheTable: ${env:LOAN_CACHE_TABLE_NAME_STG}
+      requestsCacheTable: ${env:REQUEST_CACHE_TABLE_NAME_STG}
     prod:
       usersCacheTable: ${env:USER_CACHE_TABLE_NAME_PROD}
       loansCacheTable: ${env:LOAN_CACHE_TABLE_NAME_PROD}
+      requestsCacheTable: ${env:REQUEST_CACHE_TABLE_NAME_PROD}
   QueueArns:
     stg:
       usersQueue: ${env:USER_QUEUE_ARN_STG}
