@@ -11,9 +11,9 @@ chai.should()
 const uuid = require('uuid')
 
 // Dynamoose
-process.env.LOAN_CACHE_TABLE = uuid()
+process.env.REQUEST_CACHE_TABLE = uuid()
 const { RequestSchema } = require('@lulibrary/lag-alma-utils')
-const Request = RequestSchema(process.env.LOAN_CACHE_TABLE)
+const Request = RequestSchema(process.env.REQUEST_CACHE_TABLE)
 
 // Alma API
 const AlmaApiUser = require('alma-api-wrapper/src/user')
