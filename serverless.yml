@@ -111,6 +111,19 @@ resources:
       Properties:
         QueueName: ${self:service}-${opt:stage}-feesDLQ
         MessageRetentionPeriod: 1209600
+    feeCacheTable:
+        Type: AWS::DynamoDB::Table
+        Properties:
+          AttributeDefinitions:
+            - AttributeName: id
+              AttributeType: S
+          KeySchema:
+            - AttributeName: id
+              KeyType: HASH
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+
 
 custom:
   TableArns:
@@ -118,23 +131,27 @@ custom:
       usersCacheTable: ${env:USER_CACHE_TABLE_ARN_STG}
       loansCacheTable: ${env:LOAN_CACHE_TABLE_ARN_STG}
       requestsCacheTable: ${env:REQUEST_CACHE_TABLE_ARN_STG}
-      feesCacheTable: ${env:FEE_CACHE_TABLE_ARN_STG}
+      feesCacheTable:
+        "Fn::GetAtt": [feeCacheTable, Arn]
     prod:
       usersCacheTable: ${env:USER_CACHE_TABLE_ARN_PROD}
       loansCacheTable: ${env:LOAN_CACHE_TABLE_ARN_PROD}
       requestsCacheTable: ${env:REQUEST_CACHE_TABLE_ARN_PROD}
-      feesCacheTable: ${env:FEE_CACHE_TABLE_ARN_PROD}
+      feesCacheTable:
+        "Fn::GetAtt": [feeCacheTable, Arn]
   TableNames:
     stg:
       usersCacheTable: ${env:USER_CACHE_TABLE_NAME_STG}
       loansCacheTable: ${env:LOAN_CACHE_TABLE_NAME_STG}
       requestsCacheTable: ${env:REQUEST_CACHE_TABLE_NAME_STG}
-      feesCacheTable: ${env:FEE_CACHE_TABLE_NAME_STG}
+      feesCacheTable:
+        Ref: feeCacheTable
     prod:
       usersCacheTable: ${env:USER_CACHE_TABLE_NAME_PROD}
       loansCacheTable: ${env:LOAN_CACHE_TABLE_NAME_PROD}
       requestsCacheTable: ${env:REQUEST_CACHE_TABLE_NAME_PROD}
-      feesCacheTable: ${env:FEE_CACHE_TABLE_NAME_PROD}
+      feesCacheTable:
+        Ref: feeCacheTable
   QueueArns:
     stg:
       usersQueue: ${env:USER_QUEUE_ARN_STG}
