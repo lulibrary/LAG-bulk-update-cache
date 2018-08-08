@@ -205,6 +205,7 @@ describe('update request handler tests', () => {
     })
 
     it('should create a new Request in the cache with each API response', () => {
+      sandbox.stub(Date, 'now').returns(0)
       getParameterStub.callsArgWith(1, null, { Parameter: { Value: uuid() } })
       sendMessageStub.resolves()
       putStub.callsArgWith(1, null, {})
@@ -242,6 +243,9 @@ describe('update request handler tests', () => {
                   },
                   user_primary_id: {
                     S: testUserID
+                  },
+                  record_expiry_date: {
+                    N: `${2 * 7 * 24 * 60 * 60}`
                   }
                 }
               })
