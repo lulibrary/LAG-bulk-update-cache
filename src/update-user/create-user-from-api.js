@@ -32,7 +32,7 @@ const createUserInCache = (userData) => {
     loan_ids: Array.from(userData.loans.keys()),
     request_ids: Array.from(userData.requests.keys()),
     fee_ids: Array.from(userData.fees.keys())
-  })
+  }, { overwrite: true })
 }
 
 module.exports = createUserFromApi

@@ -26,7 +26,11 @@ provider:
       Resource:
         - ${self:custom.TableArns.${opt:stage}.usersCacheTable}
         - ${self:custom.TableArns.${opt:stage}.loansCacheTable}
+<<<<<<< HEAD
         - ${self:custom.TableArns.${opt:stage}.feessCacheTable}
+=======
+        - ${self:custom.TableArns.${opt:stage}.requestsCacheTable}
+>>>>>>> master
     - Effect: Allow
       Action:
         - ssm:GetParameter
@@ -53,6 +57,14 @@ functions:
     environment:
       LOAN_CACHE_TABLE: ${self:custom.TableNames.${opt:stage}.loansCacheTable}
       ALMA_API_KEY_NAME: ${env:ALMA_API_KEY_NAME}
+  updateRequest:
+    handler: src/update-request/handler.handle
+    events:
+      - sqs:
+          arn: ${self:custom.QueueArns.${opt:stage}.requestsQueue}
+    environment:
+      REQUEST_CACHE_TABLE: ${self:custom.TableNames.${opt:stage}.requestsCacheTable}
+      ALMA_API_KEY_NAME: ${env:ALMA_API_KEY_NAME}
   updateFee:
     handler: src/update-fee/handler.handle
     events:
@@ -60,7 +72,6 @@ functions:
           arn: ${self:custom.QueueArns.${opt:stage}.feesQueue}
     environment:
       FEE_CACHE_TABLE: ${self:custom.TableNames.${opt:stage}.feesCacheTable}
-      ALMA_API_KEY_NAME: ${env:ALMA_API_KEY_NAME}
 
 resources:
   Resources:
@@ -106,19 +117,23 @@ custom:
     stg:
       usersCacheTable: ${env:USER_CACHE_TABLE_ARN_STG}
       loansCacheTable: ${env:LOAN_CACHE_TABLE_ARN_STG}
+      requestsCacheTable: ${env:REQUEST_CACHE_TABLE_ARN_STG}
       feesCacheTable: ${env:FEE_CACHE_TABLE_ARN_STG}
     prod:
       usersCacheTable: ${env:USER_CACHE_TABLE_ARN_PROD}
       loansCacheTable: ${env:LOAN_CACHE_TABLE_ARN_PROD}
+      requestsCacheTable: ${env:REQUEST_CACHE_TABLE_ARN_PROD}
       feesCacheTable: ${env:FEE_CACHE_TABLE_ARN_PROD}
   TableNames:
     stg:
       usersCacheTable: ${env:USER_CACHE_TABLE_NAME_STG}
       loansCacheTable: ${env:LOAN_CACHE_TABLE_NAME_STG}
+      requestsCacheTable: ${env:REQUEST_CACHE_TABLE_NAME_STG}
       feesCacheTable: ${env:FEE_CACHE_TABLE_NAME_STG}
     prod:
       usersCacheTable: ${env:USER_CACHE_TABLE_NAME_PROD}
       loansCacheTable: ${env:LOAN_CACHE_TABLE_NAME_PROD}
+      requestsCacheTable: ${env:REQUEST_CACHE_TABLE_NAME_PROD}
       feesCacheTable: ${env:FEE_CACHE_TABLE_NAME_PROD}
   QueueArns:
     stg:
