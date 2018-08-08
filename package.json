@@ -36,7 +36,7 @@
     "sinon-chai": "^3.0.0"
   },
   "dependencies": {
-    "@lulibrary/lag-alma-utils": "git+ssh://git@github.com/lulibrary/LAG-Alma-Utils.git#v0.5.2",
+    "@lulibrary/lag-alma-utils": "git+ssh://git@github.com/lulibrary/LAG-Alma-Utils.git#v0.5.3",
     "@lulibrary/lag-utils": "git+ssh://git@github.com/lulibrary/LAG-Utils.git#v0.4.0",
     "alma-api-wrapper": "git+ssh://git@github.com/lulibrary/node-alma-api-wrapper.git#v0.2.0"
   }

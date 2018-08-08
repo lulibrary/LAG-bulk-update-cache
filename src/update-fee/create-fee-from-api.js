@@ -13,6 +13,6 @@ const getFeeData = (userID, feeID) => {
   return almaApi.users.for(userID).getFee(feeID)
 }
 
-const createFeeInCache = (fee) => CacheFee.create(fee.data)
+const createFeeInCache = (fee) => CacheFee.create(fee.data, { overwrite: true })
 
 module.exports = createFeeFromApi

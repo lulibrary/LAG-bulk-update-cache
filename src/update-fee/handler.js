@@ -21,5 +21,5 @@ const handleMessages = (messages = []) => {
 }
 
 const updateFee = (IDs) => {
-  return createFeeFromApi(IDs.userID, IDs.loanID)
+  return createFeeFromApi(IDs.userID, IDs.feeID)
 }
