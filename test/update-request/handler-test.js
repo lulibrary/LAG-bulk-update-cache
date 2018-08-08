@@ -18,6 +18,8 @@ let wires = []
 const testRequestTable = `request_table_${uuid()}`
 process.env.REQUEST_CACHE_TABLE = testRequestTable
 
+const mocks = require('../mocks')
+
 // Module Libraries
 const { Queue } = require('@lulibrary/lag-utils')
 const AlmaUser = require('alma-api-wrapper/src/user')
@@ -144,27 +146,20 @@ describe('update request handler tests', () => {
   })
 
   describe('end to end tests', () => {
-    let putStub, apiStub, sendMessageStub, getParameterStub
+    let apiStub, sendMessageStub, getParameterStub
+    const putStub = mocks.putStub
 
     before(() => {
       const e2eSandbox = sinon.createSandbox()
-      putStub = e2eSandbox.stub()
       apiStub = e2eSandbox.stub(AlmaUser.prototype, 'getRequest')
       sendMessageStub = e2eSandbox.stub()
       getParameterStub = e2eSandbox.stub()
 
-      AWS_MOCK.mock('DynamoDB', 'putItem', putStub)
-      AWS_MOCK.mock('DynamoDB', 'describeTable', {
-        Table: {
-          TableStatus: 'ACTIVE'
-        }
-      })
       AWS_MOCK.mock('SQS', 'sendMessage', sendMessageStub)
       AWS_MOCK.mock('SSM', 'getParameter', getParameterStub)
     })
 
     after(() => {
-      AWS_MOCK.restore('DynamoDB')
       AWS_MOCK.restore('SQS')
       AWS_MOCK.restore('SSM')
     })
@@ -184,12 +179,12 @@ describe('update request handler tests', () => {
       const testRequestIDs = [uuid(), uuid(), uuid()]
       const testUserID = uuid()
 
-      testRequestIDs.forEach((ID, index) => {
-        apiStub.onCall(index).resolves({ Item: {
+      testRequestIDs.forEach((ID) => {
+        apiStub.withArgs(ID).resolves({
           data: {
             request_id: ID
           }
-        } })
+        })
       })
 
       const testEvent = {
@@ -204,11 +199,54 @@ describe('update request handler tests', () => {
       return handler(testEvent, null)
         .then(() => {
           testRequestIDs.forEach((ID, index) => {
-            apiStub.onCall(index).should.have.been.calledWith(ID)
+            apiStub.getCall(index).should.have.been.calledWith(ID)
           })
         })
     })
 
-    it('should query the Alma API for requests not in the cache')
+    it('should create a new Request in the cache with each API response', () => {
+      getParameterStub.callsArgWith(1, null, { Parameter: { Value: uuid() } })
+      sendMessageStub.resolves()
+      putStub.callsArgWith(1, null, {})
+
+      const testRequestIDs = [uuid(), uuid(), uuid()]
+      const testUserID = uuid()
+
+      testRequestIDs.forEach((ID) => {
+        apiStub.withArgs(ID).resolves({
+          data: {
+            request_id: ID,
+            user_primary_id: testUserID
+          }
+        })
+      })
+
+      const testEvent = {
+        Records: testRequestIDs.map(ID => {
+          return { body: JSON.stringify({
+            userID: testUserID,
+            requestID: ID
+          }) }
+        })
+      }
+
+      return handler(testEvent, null)
+        .then(() => {
+          testRequestIDs.forEach((ID, index) => {
+            putStub.getCall(index)
+              .should.have.been.calledWith({
+                TableName: testRequestTable,
+                Item: {
+                  request_id: {
+                    S: ID
+                  },
+                  user_primary_id: {
+                    S: testUserID
+                  }
+                }
+              })
+          })
+        })
+    })
   })
 })

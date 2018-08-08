@@ -1,4 +1,5 @@
 // Test libraries
+const AWS_MOCK = require('aws-sdk-mock')
 const sinon = require('sinon')
 const sandbox = sinon.createSandbox()
 
@@ -13,8 +14,14 @@ const uuid = require('uuid')
 const rewire = require('rewire')
 let wires = []
 
+const testLoanTable = `loan_table_${uuid()}`
+process.env.LOAN_CACHE_TABLE = testLoanTable
+
+const mocks = require('../mocks')
+
 // Module Libraries
 const { Queue } = require('@lulibrary/lag-utils')
+const AlmaUser = require('alma-api-wrapper/src/user')
 
 // Module under test
 const updateLoanHandler = rewire('../../src/update-loan/handler')
@@ -133,6 +140,115 @@ describe('update loan handler tests', () => {
       return updateLoan({ userID: testUserID, loanID: testLoanID })
         .then(() => {
           createLoanStub.should.have.been.calledWith(testUserID, testLoanID)
+        })
+    })
+  })
+
+  describe('end to end tests', () => {
+    let apiStub, sendMessageStub, getParameterStub
+    const putStub = mocks.putStub
+
+    before(() => {
+      const e2eSandbox = sinon.createSandbox()
+      apiStub = e2eSandbox.stub(AlmaUser.prototype, 'getLoan')
+      sendMessageStub = e2eSandbox.stub()
+      getParameterStub = e2eSandbox.stub()
+
+      AWS_MOCK.mock('SQS', 'sendMessage', sendMessageStub)
+      AWS_MOCK.mock('SSM', 'getParameter', getParameterStub)
+    })
+
+    after(() => {
+      AWS_MOCK.restore('SQS')
+      AWS_MOCK.restore('SSM')
+    })
+
+    afterEach(() => {
+      apiStub.reset()
+      putStub.reset()
+      sendMessageStub.reset()
+      getParameterStub.reset()
+    })
+
+    it('should query the API for each loan', () => {
+      getParameterStub.callsArgWith(1, null, { Parameter: { Value: uuid() } })
+      sendMessageStub.resolves()
+      putStub.callsArgWith(1, null, {})
+
+      const testLoanIDs = [uuid(), uuid(), uuid()]
+      const testUserID = uuid()
+
+      testLoanIDs.forEach((ID) => {
+        apiStub.withArgs(ID).resolves({
+          data: {
+            loan_id: ID,
+            user_id: testUserID
+          }
+        })
+      })
+
+      const testEvent = {
+        Records: testLoanIDs.map(ID => {
+          return { body: JSON.stringify({
+            userID: testUserID,
+            loanID: ID
+          }) }
+        })
+      }
+
+      return handler(testEvent, null)
+        .then(() => {
+          testLoanIDs.forEach((ID, index) => {
+            apiStub.getCall(index).should.have.been.calledWith(ID)
+          })
+        })
+    })
+
+    it('should create a new Loan in the cache with each API response', () => {
+      getParameterStub.callsArgWith(1, null, { Parameter: { Value: uuid() } })
+      sendMessageStub.resolves()
+      putStub.callsArgWith(1, null, {})
+
+      const testLoanIDs = [uuid(), uuid(), uuid()]
+      const testUserID = uuid()
+
+      testLoanIDs.forEach((ID) => {
+        apiStub.withArgs(ID).resolves({
+          data: {
+            loan_id: ID,
+            user_id: testUserID
+          }
+        })
+      })
+
+      const testEvent = {
+        Records: testLoanIDs.map(ID => {
+          return { body: JSON.stringify({
+            userID: testUserID,
+            loanID: ID
+          }) }
+        })
+      }
+
+      return handler(testEvent, null)
+        .then(() => {
+          testLoanIDs.forEach((ID, index) => {
+            putStub.getCall(index)
+              .should.have.been.calledWith({
+                TableName: testLoanTable,
+                Item: {
+                  loan_id: {
+                    S: ID
+                  },
+                  user_id: {
+                    S: testUserID
+                  },
+                  expiry_date: {
+                    N: '0'
+                  }
+                }
+              })
+          })
         })
     })
   })

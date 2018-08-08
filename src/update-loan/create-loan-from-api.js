@@ -6,8 +6,12 @@ const getApiKey = require('../get-alma-api-key')
 
 const createLoanFromApi = (userID, loanID) => getApiKey()
   .then(() => new AlmaClient().users.for(userID).getLoan(loanID))
+  .then(res => {
+    console.log(res)
+    return res
+  })
   .then(createLoanInCache)
 
-const createLoanInCache = (loan) => CacheLoan.create(loan.data)
+const createLoanInCache = (loan) => CacheLoan.create(loan.data, { overwrite: true })
 
 module.exports = createLoanFromApi
