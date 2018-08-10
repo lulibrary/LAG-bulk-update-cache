@@ -26,11 +26,8 @@ provider:
       Resource:
         - ${self:custom.TableArns.${opt:stage}.usersCacheTable}
         - ${self:custom.TableArns.${opt:stage}.loansCacheTable}
-<<<<<<< HEAD
-        - ${self:custom.TableArns.${opt:stage}.feessCacheTable}
-=======
         - ${self:custom.TableArns.${opt:stage}.requestsCacheTable}
->>>>>>> master
+        - ${self:custom.TableArns.${opt:stage}.feesCacheTable}
     - Effect: Allow
       Action:
         - ssm:GetParameter
