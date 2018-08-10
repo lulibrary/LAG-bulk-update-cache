@@ -16,6 +16,7 @@ provider:
         - ${self:custom.QueueArns.${opt:stage}.usersQueue}
         - ${self:custom.QueueArns.${opt:stage}.loansQueue}
         - ${self:custom.QueueArns.${opt:stage}.requestsQueue}
+        - ${self:custom.QueueArns.${opt:stage}.feesQueue}
     - Effect: Allow
       Action:
         - dynamodb:GetItem
@@ -25,7 +26,11 @@ provider:
       Resource:
         - ${self:custom.TableArns.${opt:stage}.usersCacheTable}
         - ${self:custom.TableArns.${opt:stage}.loansCacheTable}
+<<<<<<< HEAD
+        - ${self:custom.TableArns.${opt:stage}.feessCacheTable}
+=======
         - ${self:custom.TableArns.${opt:stage}.requestsCacheTable}
+>>>>>>> master
     - Effect: Allow
       Action:
         - ssm:GetParameter
@@ -41,6 +46,7 @@ functions:
     environment:
       LOANS_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.loansQueue}
       REQUESTS_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.requestsQueue}
+      FEES_QUEUE_URL: ${self:custom.QueueUrls.${opt:stage}.feesQueue}
       USER_CACHE_TABLE: ${self:custom.TableNames.${opt:stage}.usersCacheTable}
       ALMA_API_KEY_NAME: ${env:ALMA_API_KEY_NAME}
   updateLoan:
@@ -59,6 +65,13 @@ functions:
     environment:
       REQUEST_CACHE_TABLE: ${self:custom.TableNames.${opt:stage}.requestsCacheTable}
       ALMA_API_KEY_NAME: ${env:ALMA_API_KEY_NAME}
+  updateFee:
+    handler: src/update-fee/handler.handle
+    events:
+      - sqs:
+          arn: ${self:custom.QueueArns.${opt:stage}.feesQueue}
+    environment:
+      FEE_CACHE_TABLE: ${self:custom.TableNames.${opt:stage}.feesCacheTable}
 
 resources:
   Resources:
@@ -76,6 +89,13 @@ resources:
         RedrivePolicy:
           deadLetterTargetArn: ${self:custom.QueueArns.DLQs.requestsDLQ}
           maxReceiveCount: 3
+    feesQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${opt:stage}-feesQueue
+        RedrivePolicy:
+          deadLetterTargetArn: ${self:custom.QueueArns.DLQs.feesDLQ}
+          maxReceiveCount: 3
     loansDLQ:
       Type: AWS::SQS::Queue
       Properties:
@@ -86,6 +106,24 @@ resources:
       Properties:
         QueueName: ${self:service}-${opt:stage}-requestsDLQ
         MessageRetentionPeriod: 1209600
+    feesDLQ:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${opt:stage}-feesDLQ
+        MessageRetentionPeriod: 1209600
+    feeCacheTable:
+        Type: AWS::DynamoDB::Table
+        Properties:
+          AttributeDefinitions:
+            - AttributeName: id
+              AttributeType: S
+          KeySchema:
+            - AttributeName: id
+              KeyType: HASH
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+
 
 custom:
   TableArns:
@@ -93,19 +131,27 @@ custom:
       usersCacheTable: ${env:USER_CACHE_TABLE_ARN_STG}
       loansCacheTable: ${env:LOAN_CACHE_TABLE_ARN_STG}
       requestsCacheTable: ${env:REQUEST_CACHE_TABLE_ARN_STG}
+      feesCacheTable:
+        "Fn::GetAtt": [feeCacheTable, Arn]
     prod:
       usersCacheTable: ${env:USER_CACHE_TABLE_ARN_PROD}
       loansCacheTable: ${env:LOAN_CACHE_TABLE_ARN_PROD}
       requestsCacheTable: ${env:REQUEST_CACHE_TABLE_ARN_PROD}
+      feesCacheTable:
+        "Fn::GetAtt": [feeCacheTable, Arn]
   TableNames:
     stg:
       usersCacheTable: ${env:USER_CACHE_TABLE_NAME_STG}
       loansCacheTable: ${env:LOAN_CACHE_TABLE_NAME_STG}
       requestsCacheTable: ${env:REQUEST_CACHE_TABLE_NAME_STG}
+      feesCacheTable:
+        Ref: feeCacheTable
     prod:
       usersCacheTable: ${env:USER_CACHE_TABLE_NAME_PROD}
       loansCacheTable: ${env:LOAN_CACHE_TABLE_NAME_PROD}
       requestsCacheTable: ${env:REQUEST_CACHE_TABLE_NAME_PROD}
+      feesCacheTable:
+        Ref: feeCacheTable
   QueueArns:
     stg:
       usersQueue: ${env:USER_QUEUE_ARN_STG}
@@ -113,17 +159,23 @@ custom:
         "Fn::GetAtt": ["loansQueue", "Arn"]
       requestsQueue:
         "Fn::GetAtt": ["requestsQueue", "Arn"]
+      feesQueue:
+        "Fn::GetAtt": ["feesQueue", "Arn"]
     prod:
       usersQueue: ${env:USER_QUEUE_ARN_PROD}
       loansQueue:
         "Fn::GetAtt": ["loansQueue", "Arn"]
       requestsQueue:
         "Fn::GetAtt": ["requestsQueue", "Arn"]
+      feesQueue:
+        "Fn::GetAtt": ["feesQueue", "Arn"]
     DLQs:
       loansDLQ:
         "Fn::GetAtt": ["loansDLQ", "Arn"]
       requestsDLQ:
         "Fn::GetAtt": ["requestsDLQ", "Arn"]
+      feesDLQ:
+        "Fn::GetAtt": ["feesDLQ", "Arn"]
 
   QueueUrls:
     stg:

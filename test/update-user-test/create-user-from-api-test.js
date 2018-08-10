@@ -43,7 +43,8 @@ describe('create-user-from-api tests', () => {
       const testUserData = {
         id: testUserID,
         loans: new Map(),
-        requests: new Map()
+        requests: new Map(),
+        fees: new Map()
       }
 
       return createUser(testUserData)
@@ -51,12 +52,13 @@ describe('create-user-from-api tests', () => {
           createStub.should.have.been.calledWith({
             primary_id: testUserID,
             loan_ids: [],
-            request_ids: []
+            request_ids: [],
+            fee_ids: []
           })
         })
     })
 
-    it('should create arrays of the loan and request IDs', () => {
+    it('should create arrays of the loan, request and fee IDs', () => {
       const createStub = sandbox.stub(User, 'create')
       createStub.resolves()
       const createUser = createUserFromApi.__get__('createUserInCache')
@@ -69,7 +71,8 @@ describe('create-user-from-api tests', () => {
       const testUserData = {
         id: testUserID,
         loans: new Map(loanIDs.map(id => [id, null])),
-        requests: new Map(requestIDs.map(id => [id, null]))
+        requests: new Map(requestIDs.map(id => [id, null])),
+        fees: new Map()
       }
 
       return createUser(testUserData)
@@ -77,7 +80,8 @@ describe('create-user-from-api tests', () => {
           createStub.should.have.been.calledWith({
             primary_id: testUserID,
             loan_ids: loanIDs,
-            request_ids: requestIDs
+            request_ids: requestIDs,
+            fee_ids: []
           })
         })
     })
@@ -93,11 +97,13 @@ describe('create-user-from-api tests', () => {
       delete process.env.ALMA_KEY
     })
 
-    it('should call apiUser#loans and apiUser#requests', () => {
+    it('should call apiUser#loans, apiUser#requests, apiUser#fees', () => {
       const loansStub = sandbox.stub(AlmaApiUser.prototype, 'loans')
       const requestsStub = sandbox.stub(AlmaApiUser.prototype, 'requests')
+      const feesStub = sandbox.stub(AlmaApiUser.prototype, 'fees')
       loansStub.resolves()
       requestsStub.resolves()
+      feesStub.resolves()
 
       const testUserID = uuid()
 
@@ -105,16 +111,20 @@ describe('create-user-from-api tests', () => {
         .then(() => {
           loansStub.should.have.been.calledOnce
           requestsStub.should.have.been.calledOnce
+          feesStub.should.have.been.calledOnce
         })
     })
 
-    it('should return Loan and Request Maps from the API responses', () => {
+    it('should return Loan, Request and Fee Maps from the API responses', () => {
       const testLoans = new Map([uuid(), uuid(), uuid()].map(id => [id, uuid()]))
       const testRequests = new Map([uuid(), uuid(), uuid()].map(id => [id, uuid()]))
+      const testFees = new Map([uuid(), uuid(), uuid()].map(id => [id, uuid()]))
       const loansStub = sandbox.stub(AlmaApiUser.prototype, 'loans')
       const requestsStub = sandbox.stub(AlmaApiUser.prototype, 'requests')
+      const feesStub = sandbox.stub(AlmaApiUser.prototype, 'fees')
       loansStub.resolves(testLoans)
       requestsStub.resolves(testRequests)
+      feesStub.resolves(testFees)
 
       const testUserID = uuid()
 
@@ -122,6 +132,7 @@ describe('create-user-from-api tests', () => {
         .then(userData => {
           userData.loans.should.deep.equal(testLoans)
           userData.requests.should.deep.equal(testRequests)
+          userData.fees.should.deep.equal(testFees)
         })
     })
   })
@@ -131,6 +142,7 @@ describe('create-user-from-api tests', () => {
       const testUserID = uuid()
       const testLoans = new Map([uuid(), uuid(), uuid()].map(id => [id, uuid()]))
       const testRequests = new Map([uuid(), uuid(), uuid()].map(id => [id, uuid()]))
+      const testFees = new Map([uuid(), uuid(), uuid()].map(id => [id, uuid()]))
 
       const getDataStub = sandbox.stub()
       const createUserStub = sandbox.stub()
@@ -140,7 +152,8 @@ describe('create-user-from-api tests', () => {
       getDataStub.resolves({
         id: testUserID,
         loans: testLoans,
-        requests: testRequests
+        requests: testRequests,
+        fees: testFees
       })
       createUserStub.resolves()
 
@@ -149,7 +162,8 @@ describe('create-user-from-api tests', () => {
           createUserStub.should.have.been.calledWith({
             id: testUserID,
             loans: testLoans,
-            requests: testRequests
+            requests: testRequests,
+            fees: testFees
           })
         })
     })

@@ -47,7 +47,7 @@ describe('update user handler tests', () => {
       wires.push(
         updateUserHandler.__set__('handleMessages', handleMessageStub),
         updateUserHandler.__set__('updateUser', () => Promise.resolve()),
-        updateUserHandler.__set__('handleLoansAndRequests', () => Promise.resolve())
+        updateUserHandler.__set__('handleResources', () => Promise.resolve())
       )
 
       return handler(testEvent)
@@ -93,7 +93,7 @@ describe('update user handler tests', () => {
 
       wires.push(
         updateUserHandler.__set__('updateUser', updateUserStub),
-        updateUserHandler.__set__('handleLoansAndRequests', () => Promise.resolve())
+        updateUserHandler.__set__('handleResources', () => Promise.resolve())
       )
 
       return handler(testEvent)
@@ -127,7 +127,7 @@ describe('update user handler tests', () => {
       createUserStub.resolves()
 
       wires.push(
-        updateUserHandler.__set__('handleLoansAndRequests', () => Promise.resolve()),
+        updateUserHandler.__set__('handleResources', () => Promise.resolve()),
         updateUserHandler.__set__('createUserFromApi', createUserStub)
       )
 
@@ -139,7 +139,7 @@ describe('update user handler tests', () => {
         })
     })
 
-    it('should call handleLoansAndRequests with the result of createUserFromApi', () => {
+    it('should call handleResources with the result of createUserFromApi', () => {
       const createUserStub = sandbox.stub()
       const testUser = {
         primary_id: uuid(),
@@ -148,11 +148,11 @@ describe('update user handler tests', () => {
       }
       createUserStub.resolves(testUser)
 
-      const handleLsAndRsStub = sandbox.stub()
-      handleLsAndRsStub.resolves()
+      const handleResourcesStub = sandbox.stub()
+      handleResourcesStub.resolves()
 
       wires.push(
-        updateUserHandler.__set__('handleLoansAndRequests', handleLsAndRsStub),
+        updateUserHandler.__set__('handleResources', handleResourcesStub),
         updateUserHandler.__set__('createUserFromApi', createUserStub)
       )
 
@@ -160,22 +160,24 @@ describe('update user handler tests', () => {
 
       return updateUser(testUserID)
         .then(() => {
-          handleLsAndRsStub.should.have.been.calledWith(testUser)
+          handleResourcesStub.should.have.been.calledWith(testUser)
         })
     })
   })
 
-  describe('handleLoansAndRequests method tests', () => {
+  describe('handleResources method tests', () => {
     before(() => {
       process.env.LOANS_QUEUE_URL = uuid()
       process.env.REQUESTS_QUEUE_URL = uuid()
+      process.env.FEES_QUEUE_URL = uuid()
     })
 
     after(() => {
       delete process.env.LOANS_QUEUE_URL
       delete process.env.REQUESTS_QUEUE_URL
+      delete process.env.FEES_QUEUE_URL
     })
-    const handleLoansAndRequests = updateUserHandler.__get__('handleLoansAndRequests')
+    const handleResources = updateUserHandler.__get__('handleResources')
 
     it('should call sendToQueue with the Loans Queue URL and the loan IDs', () => {
       const sendToQueueStub = sandbox.stub()
@@ -191,7 +193,8 @@ describe('update user handler tests', () => {
       const testUser = {
         primary_id: testUserID,
         loan_ids: testLoans,
-        request_ids: []
+        request_ids: [],
+        fee_ids: []
       }
 
       const expected = [{
@@ -208,7 +211,7 @@ describe('update user handler tests', () => {
         userID: testUserID
       }].map(JSON.stringify)
 
-      return handleLoansAndRequests(testUser)
+      return handleResources(testUser)
         .then(() => {
           sendToQueueStub.should.have.been.calledWith(process.env.LOANS_QUEUE_URL, expected)
         })
@@ -228,7 +231,8 @@ describe('update user handler tests', () => {
       const testUser = {
         primary_id: testUserID,
         request_ids: testRequests,
-        loan_ids: []
+        loan_ids: [],
+        fee_ids: []
       }
 
       const expected = [{
@@ -245,9 +249,47 @@ describe('update user handler tests', () => {
         userID: testUserID
       }].map(JSON.stringify)
 
-      return handleLoansAndRequests(testUser)
+      return handleResources(testUser)
         .then(() => {
           sendToQueueStub.should.have.been.calledWith(process.env.REQUESTS_QUEUE_URL, expected)
+        })
+    })
+
+    it('should call sendToQueue with the Fees Queue URL and the fee IDs', () => {
+      const sendToQueueStub = sandbox.stub()
+      sendToQueueStub.resolves()
+
+      wires.push(
+        updateUserHandler.__set__('sendToQueue', sendToQueueStub)
+      )
+
+      const testUserID = uuid()
+      const testFees = [uuid(), uuid(), uuid(), uuid()]
+
+      const testUser = {
+        primary_id: testUserID,
+        loan_ids: [],
+        request_ids: [],
+        fee_ids: testFees
+      }
+
+      const expected = [{
+        feeID: testFees[0],
+        userID: testUserID
+      }, {
+        feeID: testFees[1],
+        userID: testUserID
+      }, {
+        feeID: testFees[2],
+        userID: testUserID
+      }, {
+        feeID: testFees[3],
+        userID: testUserID
+      }].map(JSON.stringify)
+
+      return handleResources(testUser)
+        .then(() => {
+          sendToQueueStub.should.have.been.calledWith(process.env.FEES_QUEUE_URL, expected)
         })
     })
   })
