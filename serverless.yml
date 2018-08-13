@@ -181,14 +181,20 @@ custom:
         Ref: loansQueue
       requestsQueue:
         Ref: requestsQueue
+      feesQueue:
+        Ref: feesQueue
     prod:
       usersQueue: ${env:USER_QUEUE_URL_PROD}
       loansQueue:
         Ref: loansQueue
       requestsQueue:
         Ref: requestsQueue
+      feesQueue:
+        Ref: feesQueue
     DLQs:
       loansDLQ:
         Ref: loansDLQ
       requestsDLQ:
         Ref: requestsDLQ
+      feesDLQ:
+        Ref: feesDLQ
