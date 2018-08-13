@@ -69,6 +69,7 @@ functions:
           arn: ${self:custom.QueueArns.${opt:stage}.feesQueue}
     environment:
       FEE_CACHE_TABLE: ${self:custom.TableNames.${opt:stage}.feesCacheTable}
+      ALMA_API_KEY_NAME: ${env:ALMA_API_KEY_NAME}
 
 resources:
   Resources:
