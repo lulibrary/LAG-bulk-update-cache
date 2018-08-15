@@ -217,7 +217,9 @@ describe('update fee handler tests', () => {
         apiStub.withArgs(ID).resolves({
           data: {
             id: ID,
-            user_primary_id: testUserID
+            user_primary_id: {
+              value: testUserID
+            }
           }
         })
       })
@@ -242,7 +244,11 @@ describe('update fee handler tests', () => {
                     S: ID
                   },
                   user_primary_id: {
-                    S: testUserID
+                    M: {
+                      value: {
+                        S: testUserID
+                      }
+                    }
                   },
                   expiry_date: {
                     N: `${2 * 7 * 24 * 60 * 60}`
