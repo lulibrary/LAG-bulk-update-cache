@@ -129,15 +129,15 @@ resources:
 custom:
   TableArns:
     stg:
-      usersCacheTable: arn:aws:dynamodb:#{AWS::Region}:#{AWS:AccountId}:table/${env:USER_CACHE_TABLE_NAME_STG}
-      loansCacheTable: arn:aws:dynamodb:#{AWS::Region}:#{AWS:AccountId}:table/${env:LOAN_CACHE_TABLE_NAME_STG}
-      requestsCacheTable: arn:aws:dynamodb:#{AWS::Region}:#{AWS:AccountId}:table/${env:REQUEST_CACHE_TABLE_NAME_STG}
+      usersCacheTable: arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${env:USER_CACHE_TABLE_NAME_STG}
+      loansCacheTable: arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${env:LOAN_CACHE_TABLE_NAME_STG}
+      requestsCacheTable: arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${env:REQUEST_CACHE_TABLE_NAME_STG}
       feesCacheTable:
         "Fn::GetAtt": [feeCacheTable, Arn]
     prod:
-      usersCacheTable: arn:aws:dynamodb:#{AWS::Region}:#{AWS:AccountId}:table/${env:USER_CACHE_TABLE_NAME_PROD}
-      loansCacheTable: arn:aws:dynamodb:#{AWS::Region}:#{AWS:AccountId}:table/${env:LOAN_CACHE_TABLE_NAME_PROD}
-      requestsCacheTable: arn:aws:dynamodb:#{AWS::Region}:#{AWS:AccountId}:table/${env:REQUEST_CACHE_TABLE_NAME_PROD}
+      usersCacheTable: arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${env:USER_CACHE_TABLE_NAME_PROD}
+      loansCacheTable: arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${env:LOAN_CACHE_TABLE_NAME_PROD}
+      requestsCacheTable: arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${env:REQUEST_CACHE_TABLE_NAME_PROD}
       feesCacheTable:
         "Fn::GetAtt": [feeCacheTable, Arn]
   TableNames:
