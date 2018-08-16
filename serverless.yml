@@ -32,7 +32,7 @@ provider:
       Action:
         - ssm:GetParameter
       Resource:
-        - ${env:ALMA_API_KEY_ARN}
+        - aws:arn:ssm:${opt:region}:#{AWS::AccountId}:parameter${env:ALMA_API_KEY_NAME}
 
 functions:
   updateUser:
