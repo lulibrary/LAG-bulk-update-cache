@@ -1,4 +1,4 @@
-# LAG-sns-update-cache
+# LAG-bulk-update-cache
 A serverless application on AWS Lambda for updating a DynamoDB cache of Alma data. 
 
 This service is built on the [serverless](https://serverless.com/) framework.
